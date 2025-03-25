@@ -64,47 +64,51 @@ export function prepareReportData({
     // Prepare data to show summary
     const violationsSummaryTable = simplifyAxeResultForSummary(violations);
     // Prepare data to show detailed list of violations
-    const violationsDetails = violations.map(
-        ({ nodes, impact, description, help, id, tags, helpUrl }, issueIndex) => {
-            return {
-                index: issueIndex + 1,
-                wcag: getWcagReference(tags),
-                tags,
-                id,
-                impact: impact || 'n/a',
-                description,
-                help,
-                helpUrl,
-                nodes: nodes.map(({ target, html, failureSummary, any }, nodeIndex) => {
-                    const targetNodes = target.join('\n');
-                    const defaultHighlight = {
-                        highlight: 'Recommendation with the fix was not provided by axe result',
-                    };
-                    const fixSummaries: FixSummary[] = failureSummary
-                        ? prepareFixSummary(failureSummary, defaultHighlight)
-                        : [defaultHighlight];
-                    const relatedNodesAny: string[] = [];
-                    any.forEach((checkResult) => {
-                        if (checkResult.relatedNodes && checkResult.relatedNodes.length > 0) {
-                            checkResult.relatedNodes.forEach((node) => {
-                                if (node.target.length > 0) {
-                                    relatedNodesAny.push(node.target.join('\n'));
-                                }
-                            });
-                        }
-                    });
+   const violationsDetails = violations.map(
+  ({ nodes, impact, description, help, id, tags, helpUrl }, issueIndex) => {
+    return {
+      index: issueIndex + 1,
+      wcag: getWcagReference(tags),
+      tags,
+      id,
+      impact: impact || 'n/a',
+      description,
+      help,
+      helpUrl,
+      nodes: nodes.map(({ target, html, failureSummary, any }, nodeIndex) => {
+        const targetNodes = target.join('\n');
+        const defaultHighlight = {
+          highlight: 'Recommendation with the fix was not provided by axe result',
+        };
+        const fixSummaries: FixSummary[] = failureSummary
+          ? prepareFixSummary(failureSummary, defaultHighlight)
+          : [defaultHighlight];
 
-                    return {
-                        targetNodes,
-                        html,
-                        fixSummaries,
-                        relatedNodesAny,
-                        index: nodeIndex + 1,
-                    };
-                }),
-            };
-        }
-    );
+        const relatedNodesAny: string[] = [];
+        any.forEach((checkResult) => {
+          if (checkResult.relatedNodes?.length) {
+            checkResult.relatedNodes.forEach((node) => {
+              if (node.target.length > 0) {
+                relatedNodesAny.push(node.target.join('\n'));
+              }
+            });
+          }
+        });
+
+        // Inject screenshot filename here
+        return {
+          targetNodes,
+          html,
+          fixSummaries,
+          relatedNodesAny,
+          index: nodeIndex + 1,
+          screenshot: `screenshot-${id.replace(/[^a-z0-9]/gi, '_')}_${nodeIndex}.png`
+        };
+      }),
+    };
+  }
+);
+
 
     return {
         violationsSummary,

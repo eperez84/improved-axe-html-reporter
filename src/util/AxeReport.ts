@@ -17,7 +17,8 @@ interface NodeResult {
     targetNodes: string;
     fixSummaries: FixSummary[];
     index: number;
-    relatedNodesAny: string[]
+    relatedNodesAny: string[];
+    screenshot?: string;
 }
 
 interface Details {

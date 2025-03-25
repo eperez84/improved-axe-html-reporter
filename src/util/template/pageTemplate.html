@@ -181,33 +181,42 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{#nodes}}
-                                <tr>
-                                    <td>{{index}}</td>
-                                    <td>
-                                        <p><strong>Element location</strong></p>
-                                        <pre><code class="css text-wrap">{{targetNodes}}</code></pre>
-                                        <p><strong>Element source</strong></p>
-                                        <pre><code class="html text-wrap">{{html}}</code></pre>
-                                    </td>
-                                    <td>
-                                        {{#fixSummaries}}
-                                        <div class="wrapBreakWord">
-                                            <p>{{highlight}}</p>
-                                            <ul class="text-muted">
-                                                {{#list}}
-                                                <li>{{.}}</li>
-                                                {{/list}}
-                                            </ul>
-                                        </div>
-                                        {{/fixSummaries}} {{#relatedNodesAny.length}}
-                                        <p><strong>Related node:</strong></p>
-                                        {{/relatedNodesAny.length}} {{#relatedNodesAny}}
-                                        <pre><code class="css text-wrap">{{.}}</code></pre>
-                                        {{/relatedNodesAny}}
-                                    </td>
-                                </tr>
-                                {{/nodes}}
+                            {{#nodes}}
+                            <tr>
+                              <td>{{index}}</td>
+                              <td>
+                                <p><strong>Element location</strong></p>
+                                <pre><code class="css text-wrap">{{targetNodes}}</code></pre>
+
+                                <p><strong>Element source</strong></p>
+                                <pre><code class="html text-wrap">{{html}}</code></pre>
+
+                                {{#if screenshot}}
+                                  <p><strong>Screenshot</strong></p>
+                                  <img src="{{screenshot}}" alt="Screenshot for {{targetNodes}}" style="max-width: 100%; border: 1px solid #ccc; margin-top: 0.5rem;" />
+                                {{/if}}
+                              </td>
+                              <td>
+                                {{#fixSummaries}}
+                                <div class="wrapBreakWord">
+                                  <p>{{highlight}}</p>
+                                  <ul class="text-muted">
+                                    {{#list}}
+                                    <li>{{.}}</li>
+                                    {{/list}}
+                                  </ul>
+                                </div>
+                                {{/fixSummaries}}
+
+                                {{#relatedNodesAny.length}}
+                                <p><strong>Related node:</strong></p>
+                                {{/relatedNodesAny.length}}
+                                {{#relatedNodesAny}}
+                                <pre><code class="css text-wrap">{{.}}</code></pre>
+                                {{/relatedNodesAny}}
+                              </td>
+                            </tr>
+                            {{/nodes}}
                             </tbody>
                         </table>
                     </div>
