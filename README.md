@@ -1,162 +1,66 @@
-# axe-html-reporter
+# improved-axe-html-reporter
 
-Creates an HTML report from Axe-core® library AxeResults object listing violations, passes, incomplete and incompatible results.
+This package generates a detailed HTML accessibility report from Axe-core® library results, focusing on usage with Playwright. The report includes violations, passes, incomplete, and incompatible results, and can embed screenshots of specific issues.
 
-Allows specifying report creation options: `reportFileName`, `outputDir`, `outputDirPath`, `projectKey` and `customSummary`.
+## Features
+- Creates a detailed HTML report from Axe-core results.
+- Supports embedding screenshots for violations.
+- Customizable with options for file name, output directory, and project key.
+- Intended for Playwright integration.
 
-Notes: 
+## Installation
 
-- `customSummary` allows having html parameters
-- `outputDirPath` allows specifying absolute path
+Install the package using npm:
 
-Please check [sample report output.](https://lpelypenko.github.io/axe-html-reporter/)
+```
+npm install -D improved-axe-html-reporter
+```
 
-`createHtmlReport` returns HTML content that can be additionally used for specific integrations.
+## Usage with Playwright
 
-If only HTML content needed, user can pass `doNotCreateReportFile: true` to stop report file creation.
-
-Suggestion on how to use this library if you don't need a report file but need only HTML it produces: 
+### Example
 
 ```javascript
-const reportHTML = createHtmlReport({
-    results: rawAxeResults,
-    options: {
-        projectKey: 'I need only raw HTML',
-        doNotCreateReportFile: true,
-    },
-});
-console.log('reportHTML will have full content of HTML file.');
-// suggestion on how to create file by yourself
-if (!fs.existsSync('build/reports/saveReportHere.html')) {
-    fs.mkdirSync('build/reports', {
-        recursive: true,
-    });
-}
-fs.writeFileSync('build/reports/saveReportHere.html', reportHTML);
-```
+import { test, expect } from '@playwright/test';
+import path from 'path';
+import fs from 'fs';
+import AxeBuilder from '@axe-core/playwright';
+import { createHtmlReport } from 'improved-axe-html-reporter';
+import { captureScreenshotsForViolations } from '../utils/axe/screenshot';
 
-## Install
+// Playwright Test Example
+test('Accessibility scan with screenshots', async ({ page }, testInfo) => {
+    const url = testInfo.project.use.baseURL;
+    await page.goto(url);
 
-```
-npm i -D axe-html-reporter
-```
+    // Create output folder
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const outputDir = path.resolve('a11y-reports', timestamp);
+    fs.mkdirSync(outputDir, { recursive: true });
 
-## Usage
+    // Run Axe accessibility scan
+    const results = await new AxeBuilder({ page }).analyze();
+    await captureScreenshotsForViolations(page, results, outputDir);
 
-### Example usage in TestCafe
-
-To run TestCafe tests with Axe-core®, install [testcafe](https://www.npmjs.com/package/testcafe), [axe-core](https://www.npmjs.com/package/axe-core) and [@testcafe-community/axe](https://www.npmjs.com/package/@testcafe-community/axe):
-
-```shell script
-npm i -D axe-html-reporter testcafe axe-core @testcafe-community/axe
-```
-
-For TestCafe example add the following clientScript in your `.testcaferc.json` config:
-
-```json
-{
-    "clientScripts": [{ "module": "axe-core/axe.min.js" }]
-}
-```
-
-In the example bellow `fileName` is not passed. If `fileName` is not passed, HTML report will be created with default name `accessibilityReport.html` in `artifacts` directory.
-
-See full TestCafe test example is bellow:
-
-```javascript
-import { runAxe } from '@testcafe-community/axe';
-import { createHtmlReport } from 'axe-html-reporter';
-
-fixture('TestCafe tests with Axe-core®').page('http://example.com');
-
-test('Automated accessibility testing', async (t) => {
-    const axeContext = { exclude: [['select']] };
-    const axeOptions = {
-        rules: {
-            'object-alt': { enabled: true },
-            'role-img-alt': { enabled: true },
-            'input-image-alt': { enabled: true },
-            'image-alt': { enabled: true },
-        },
-    };
-    const { error, results } = await runAxe(axeContext, axeOptions);
-    await t.expect(error).notOk(`axe check failed with an error: ${error.message}`);
-    // creates html report with the default file name `accessibilityReport.html`
+    // Generate HTML report
     createHtmlReport({
         results,
         options: {
-            projectKey: 'EXAMPLE',
-        },
+            outputDir,
+            reportFileName: 'a11y-report.html',
+            projectKey: 'Accessibility Test'
+        }
     });
+
+    expect(results.violations.length).toBe(0);
 });
 ```
 
-Run TestCafe test:
+## Options
+- `outputDir`: Specifies the directory to save the HTML report.
+- `reportFileName`: Sets a custom name for the report file.
+- `projectKey`: Adds a project identifier to the report header.
+- `customSummary`: Allows adding custom HTML content to the summary.
 
-```shell script
-npx testcafe
- Running tests in:
- - Chrome 85.0.4183.121 / Linux
-
- TestCafe tests with Axe-core®
-HTML report was saved into the following directory /Users/axe-demos/artifacts/accessibilityReport.html
- ✓ Automated accessibility testing
-
-
- 1 passed (1s)
-
-```
-
-### Example usage in any JS framework
-
-```javascript
-import { createHtmlReport } from 'axe-html-reporter';
-
-(() => {
-    // creates html report with the default name `accessibilityReport.html` file
-    createHtmlReport({ results: 'AxeCoreResults' }); // full AxeResults object
-    // creates html report with the default name `accessibilityReport.html` file and all supported AxeResults values
-    createHtmlReport({ results: { violations: 'Result[]' } }); // passing only violations from axe.run output
-    // creates html report with the default name `accessibilityReport.html` file and adds url and projectKey
-    createHtmlReport({
-        results: 'AxeCoreResults',
-        options: { projectKey: 'JIRA_PROJECT_KEY' },
-    });
-    // creates html report with the name `exampleReport.html` in 'axe-reports' directory and adds projectKey to the header
-    createHtmlReport({
-        results: 'AxeCoreResults',
-        options: {
-            projectKey: 'JIRA_PROJECT_KEY',
-            outputDir: 'axe-core-reports',
-            reportFileName: 'exampleReport.html',
-        },
-    });
-    // creates html report with all optional parameters, saving the report into 'docs' directory with report file name 'index.html'
-    const customSummary = `Test Case: Full page analysis
-    <br>Steps:</br>
-    <ol style="margin: 0">
-    <li>Open https://dequeuniversity.com/demo/mars/</li>
-    <li>Analyze full page with all rules enabled</li>
-    </ol>`;
-    createHtmlReport({
-        results: 'AxeResults',
-        options: {
-            projectKey: 'DEQUE',
-            customSummary,
-            outputDir: 'docs',
-            reportFileName: 'index.html',
-        },
-    });
-})();
-```
-
-### CommonJS
-
-```javascript
-const { createHtmlReport } = require('axe-html-reporter');
-
-(() => {
-    // creates html report with the name `accessibilityReport.html` file
-    createHtmlReport({ results: { violations: 'Result[]' } });
-})();
-```
+## License
+This project is licensed under the MIT License. It is a customized version of the original axe-html-reporter by Liliia Pelypenko.
