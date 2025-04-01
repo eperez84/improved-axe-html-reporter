@@ -1,7 +1,9 @@
 import mustache from 'mustache';
 import { AxeResults, Result } from 'axe-core';
 import { loadTemplate } from './util/loadTemplate';
+// @ts-ignore
 import { prepareReportData } from './util/prepareReportData';
+// @ts-ignore
 import { prepareAxeRules } from './util/prepareAxeRules';
 import { saveHtmlReport } from './util/saveHtmlReport';
 
@@ -32,33 +34,38 @@ export function createHtmlReport({ results, options }: CreateReport): string {
             "'violations' is required for HTML accessibility report. Example: createHtmlReport({ results : { violations: Result[] } })"
         );
     }
+
     try {
         const template = loadTemplate();
+        // any logging you added...
+	// @ts-ignore
         const preparedReportData = prepareReportData({
             violations: results.violations,
             passes: results.passes,
             incomplete: results.incomplete,
             inapplicable: results.inapplicable,
         });
+
         const htmlContent = mustache.render(template, {
-            url: results.url,
-            violationsSummary: preparedReportData.violationsSummary,
-            violations: preparedReportData.violationsSummaryTable,
-            violationDetails: preparedReportData.violationsDetails,
-            checksPassed: preparedReportData.checksPassed,
-            checksIncomplete: preparedReportData.checksIncomplete,
-            checksInapplicable: preparedReportData.checksInapplicable,
-            hasPassed: Boolean(results.passes),
-            hasIncomplete: Boolean(results.incomplete),
-            hasInapplicable: Boolean(results.inapplicable),
-            incompleteTotal: preparedReportData.checksIncomplete
-                ? preparedReportData.checksIncomplete.length
-                : 0,
-            projectKey: options?.projectKey,
-            customSummary: options?.customSummary,
-            hasAxeRawResults: Boolean(results?.timestamp),
-            rules: prepareAxeRules(results?.toolOptions?.rules || {}),
+    url: results.url,
+    violationsSummary: preparedReportData.violationsSummary,
+    violations: preparedReportData.violationsSummaryTable,
+    violationDetails: preparedReportData.violationsDetails,
+    checksPassed: preparedReportData.checksPassed,
+    checksIncomplete: preparedReportData.checksIncomplete,
+    checksInapplicable: preparedReportData.checksInapplicable,
+    hasPassed: Boolean(results.passes),
+    hasIncomplete: Boolean(results.incomplete),
+    hasInapplicable: Boolean(results.inapplicable),
+    incompleteTotal: preparedReportData.checksIncomplete
+        ? preparedReportData.checksIncomplete.length
+        : 0,
+    projectKey: options?.projectKey,
+    customSummary: options?.customSummary,
+    hasAxeRawResults: Boolean(results?.timestamp),
+    rules: prepareAxeRules(results?.toolOptions?.rules || {})
         });
+
         if (!options || options.doNotCreateReportFile === undefined || !options.doNotCreateReportFile) {
             saveHtmlReport({
                 htmlContent,
@@ -69,11 +76,14 @@ export function createHtmlReport({ results, options }: CreateReport): string {
         }
 
         return htmlContent;
-    } catch (e) {
-        // @ts-ignore
-        console.warn(`HTML report was not created due to the error ${e.message}`);
 
-        // @ts-ignore
-        return `Failed to create HTML report due to an error ${e.message}`;
+    } catch (e) {
+        if (e instanceof Error) {
+            console.warn(`HTML report was not created due to the error: ${e.message}`);
+            return `Failed to create HTML report due to an error ${e.message}`;
+        } else {
+            console.warn('HTML report was not created due to an unknown error:', e);
+            return 'Failed to create HTML report due to an unknown error';
+        }
     }
 }

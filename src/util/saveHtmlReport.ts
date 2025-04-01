@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 
 export const defaultReportFileName = 'accessibilityReport.html';
 
@@ -20,7 +21,7 @@ export function saveHtmlReport({
     outputDirPath = process.cwd()
 }: SaveReportOptions): void {
     try {
-        const reportDirectory = `${outputDirPath}/${outputDir || 'artifacts'}`;
+        const reportDirectory = path.resolve(outputDirPath, outputDir || 'artifacts');
         if (!fs.existsSync(reportDirectory)) {
             fs.mkdirSync(reportDirectory, {
                 recursive: true,

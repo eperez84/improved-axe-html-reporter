@@ -187,14 +187,12 @@
                               <td>
                                 <p><strong>Element location</strong></p>
                                 <pre><code class="css text-wrap">{{targetNodes}}</code></pre>
-
                                 <p><strong>Element source</strong></p>
                                 <pre><code class="html text-wrap">{{html}}</code></pre>
-
-                                {{#if screenshot}}
-                                  <p><strong>Screenshot</strong></p>
-                                  <img src="{{screenshot}}" alt="Screenshot for {{targetNodes}}" style="max-width: 100%; border: 1px solid #ccc; margin-top: 0.5rem;" />
-                                {{/if}}
+                                    {{#screenshot}}
+                                      <p><strong>Screenshot</strong></p>
+                                      <img src="screenshots/{{screenshot}}" alt="Screenshot for {{targetNodes}}" style="max-width: 100%; border: 1px solid #ccc;" />
+                                    {{/screenshot}}
                               </td>
                               <td>
                                 {{#fixSummaries}}
@@ -207,7 +205,6 @@
                                   </ul>
                                 </div>
                                 {{/fixSummaries}}
-
                                 {{#relatedNodesAny.length}}
                                 <p><strong>Related node:</strong></p>
                                 {{/relatedNodesAny.length}}
